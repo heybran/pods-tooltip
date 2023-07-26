@@ -3,13 +3,10 @@ export default class PodsTooltip extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    document.addEventListener(
-      "click",
-      this.closeTooltipWhenClickOutside.bind(this),
-    );
     this.defer = (window.requestIdleCallback || requestAnimationFrame).bind(
       window,
     );
+    window.addEventListener("scroll", this.setPositionOnScroll.bind(this));
   }
 
   connectedCallback() {
@@ -20,10 +17,10 @@ export default class PodsTooltip extends HTMLElement {
         <button 
           part="button" 
           class="tooltip-button" 
-          onclick="this.getRootNode().host.toggleTooltip()"
           onfocusin="this.getRootNode().host.openTooltip()"
+          onfocusout="this.getRootNode().host.closeTooltip()"
           >
-          <svg xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-help-circle"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          <svg xmlns="http://www.w3.org/2000/svg" role="presentation" aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-help-circle"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
           <span class="sr-only"></span>
         </button>
         <div slot="content" class="tooltip-content">
@@ -47,8 +44,16 @@ export default class PodsTooltip extends HTMLElement {
     return this.shadowRoot.querySelector("button");
   }
 
+  get buttonWidth() {
+    return this.button.getBoundingClientRect().width;
+  }
+
   get tooltipContent() {
     return this.shadowRoot.querySelector(".tooltip-content");
+  }
+
+  get tooltipContentHeight() {
+    return this.tooltipContent.getBoundingClientRect().height;
   }
 
   closeTooltip() {
@@ -56,20 +61,21 @@ export default class PodsTooltip extends HTMLElement {
   }
 
   openTooltip() {
+    this.setPosition();
     this.tooltipContent.classList.add("visible");
   }
 
-  toggleTooltip() {
-    if (this.getAttribute("aria-expanded") === "false") {
-      this.openTooltip();
-    } else {
-      this.closeTooltip();
-    }
+  setPosition() {
+    const { left, top } = this.button.getBoundingClientRect();
+    const y = top - this.tooltipContentHeight - 2;
+    const x = left + this.buttonWidth / 2;
+    this.style.setProperty("--tooltip-left", `${x}px`);
+    this.style.setProperty("--tooltip-top", `${y}px`);
   }
 
-  closeTooltipWhenClickOutside(e) {
-    if (e.composedPath().includes(this)) return;
-    this.closeTooltip();
+  setPositionOnScroll() {
+    if (this.ariaExpanded === "false") return;
+    this.setPosition();
   }
 
   static get css() {
@@ -77,6 +83,7 @@ export default class PodsTooltip extends HTMLElement {
       :host {
         display: inline-flex;
         color: #fff;
+        --tooltip-arrow-size: 12px;
       }
 
       button {
@@ -101,19 +108,20 @@ export default class PodsTooltip extends HTMLElement {
       }
 
       .tooltip-content {
-        position: absolute;
+        position: fixed;
         opacity: 0;
         pointer-events: none;
         background-color: var(--tooltip-background-color, #333);
         border-radius: 4px;
         padding: 1em 1.2em;
-        left: 50%;
+        left: var(--tooltip-left);
+        top: calc(var(--tooltip-top) - var(--tooltip-arrow-size));
         transform: translateX(-50%);
         transition: opacity .3s ease;
         will-change: opacity;
-        bottom: calc(100% + 12px);
+        /*bottom: calc(100% + 12px);*/
         width: max(25em, 350px);
-        z-index: 9999;
+        z-index: 99999;
         display: grid;
         gap: .75em;
       }
@@ -124,7 +132,6 @@ export default class PodsTooltip extends HTMLElement {
       }
 
       .tooltip-content::before {
-        --tooltip-arrow-size: 12px;
         content: '';
         position: absolute;
         bottom: calc(var(--tooltip-arrow-size) * -0.5);
