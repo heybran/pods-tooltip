@@ -2,13 +2,18 @@
 export default class PodsTooltip extends HTMLElement {
   constructor() {
     super();
-    this.attachShadow({ mode: 'open' });
-    document.addEventListener('click', this.closeTooltipWhenClickOutside.bind(this));
-    this.defer = (window.requestIdleCallback || requestAnimationFrame).bind(window);
+    this.attachShadow({ mode: "open" });
+    document.addEventListener(
+      "click",
+      this.closeTooltipWhenClickOutside.bind(this),
+    );
+    this.defer = (window.requestIdleCallback || requestAnimationFrame).bind(
+      window,
+    );
   }
 
   connectedCallback() {
-    this.ariaExpanded = 'false';
+    this.ariaExpanded = "false";
     this.shadowRoot.innerHTML = `
       <style>${this.constructor.css}</style>
       <div part="wrapper" class="tooltip-wrapper">
@@ -26,11 +31,11 @@ export default class PodsTooltip extends HTMLElement {
         </div>
       </div>
     `;
-    this.tooltipContent.addEventListener('transitionend', () => {
-      if (this.tooltipContent.classList.contains('visible')) {
-        this.ariaExpanded = 'true';
+    this.tooltipContent.addEventListener("transitionend", () => {
+      if (this.tooltipContent.classList.contains("visible")) {
+        this.ariaExpanded = "true";
       } else {
-        this.ariaExpanded = 'false';
+        this.ariaExpanded = "false";
       }
     });
     this.defer(() => {
@@ -39,25 +44,23 @@ export default class PodsTooltip extends HTMLElement {
   }
 
   get button() {
-    return this.shadowRoot.querySelector('button');
+    return this.shadowRoot.querySelector("button");
   }
 
   get tooltipContent() {
-    return this.shadowRoot.querySelector('.tooltip-content');
+    return this.shadowRoot.querySelector(".tooltip-content");
   }
 
   closeTooltip() {
-    this.tooltipContent.classList.remove('visible');
-    // this.button.removeEventListener('click', this.closeTooltipWhenOpen.bind(this));
+    this.tooltipContent.classList.remove("visible");
   }
 
   openTooltip() {
-    this.tooltipContent.classList.add('visible');
+    this.tooltipContent.classList.add("visible");
   }
 
-  toggleTooltip(e) {
-    console.log(1);
-    if (this.getAttribute('aria-expanded') === 'false') {
+  toggleTooltip() {
+    if (this.getAttribute("aria-expanded") === "false") {
       this.openTooltip();
     } else {
       this.closeTooltip();
@@ -143,4 +146,4 @@ export default class PodsTooltip extends HTMLElement {
   }
 }
 
-customElements.define('pods-tooltip', PodsTooltip);
+customElements.define("pods-tooltip", PodsTooltip);
