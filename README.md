@@ -1,6 +1,6 @@
-## Pods Tooltip
+## Pods Tooltip (Work in progess)
 
-(Work in progess) A possible solution to simplify tooltip for [Pods Framework](https://github.com/pods-framework/pods).
+`pods-tooltip` is a [single-file](./src/index.js) web components. A possible solution to simplify tooltips for [Pods Framework](https://github.com/pods-framework/pods).
 
 ### Usage
 
